@@ -5,7 +5,7 @@ tests_num = 5000
 max_value = 2 ** 1024 - 1
 
 
-def sub_testgen():
+def sub_test_gen():
     test_file = open("test_sub.data", "w")
     i = 0
     while i < tests_num:
@@ -17,7 +17,7 @@ def sub_testgen():
     test_file.close()
 
 
-def add_testgen():
+def add_test_gen():
     test_file = open("test_add.data", "w")
 
     i = 0
@@ -25,14 +25,13 @@ def add_testgen():
         a, b = get_rand_nums()
         if a + b > max_value:
             continue
-
         test = str(a) + "_" + str(b) + "_" + str(a + b) + "_ end\n"
         test_file.write(test)
         i += 1
     test_file.close()
 
 
-def mul_testgen():
+def mul_test_gen():
     test_file = open("test_mul.data", "w")
     i = 0
     while i < tests_num:
@@ -60,6 +59,6 @@ def get_rand_nums():
     return a, b
 
 
-add_testgen()
-sub_testgen()
-mul_testgen()
+add_test_gen()
+sub_test_gen()
+mul_test_gen()

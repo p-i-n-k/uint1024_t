@@ -40,12 +40,15 @@ int main(int argc, const char * argv[]) {
 
 double test(const char *file_name, uint1024_t (*func) (uint1024_t, uint1024_t)) {
     FILE *test_file = fopen(file_name, "r");
+    if (test_file == NULL) {
+        perror("error while reading file");
+        return -1;
+    }
     data test;
     double time = 0;
     int i = 1;
     while (get_test_data(&test, test_file) != -1) {
         time_t begin = clock();
-
         uint1024_t ans = func(test.num1, test.num2);
 
         time_t end = clock();

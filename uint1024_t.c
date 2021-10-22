@@ -15,7 +15,7 @@
 uint1024_t from_uint(uint64_t x) {
     uint1024_t num;
     num.nums[0] = x;
-    for (int i = 1; i < 16; i++) {
+    for (int i = 1; i < MAX_SIZE; i++) {
         num.nums[i] = 0;
     }
     num.size = 1;
@@ -25,7 +25,7 @@ uint1024_t from_uint(uint64_t x) {
 uint1024_t from_uint1024(uint1024_t x) {
     uint1024_t new;
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < MAX_SIZE; i++) {
         new.nums[i] = x.nums[i];
     }
     new.size = x.size;
@@ -87,14 +87,14 @@ uint1024_t l_shift(const uint1024_t *x, unsigned int t) {
             rsh = 64 - lsh;
     uint64_t carry = 0;
 
-    for (i = 0; (i < x->size || carry != 0) && i + k < 16; ++i) {
+    for (i = 0; (i < x->size || carry != 0) && i + k < MAX_SIZE; ++i) {
         uint64_t shift = x->nums[i] << lsh;
         shift |= carry;
         carry = rsh == 64 ? 0 : x->nums[i] >> rsh; // обработка неопределенного поведения
         ans.nums[i + k] = shift;
     }
 
-    if (i + k > 16 || (i + k == 16 && ans.nums[15] == 0)) {
+    if (i + k > MAX_SIZE || (i + k == MAX_SIZE && ans.nums[MAX_SIZE - 1] == 0)) {
         ans.size = 1;
     } else {
         ans.size = i+k;
@@ -103,15 +103,18 @@ uint1024_t l_shift(const uint1024_t *x, unsigned int t) {
     return ans;
 }
 
-
+/**
+ * Складывает два числа типа uint1024_t
+ * @return x + y
+ */
 uint1024_t add_op(uint1024_t x, uint1024_t y) {
     uint1024_t x_cpy;
     if (x.size < y.size) {
         x_cpy = from_uint1024(y);
-        add_op_(&x_cpy, &x);
+        add_op_ptr(&x_cpy, &x);
     } else {
         x_cpy = from_uint1024(x);
-        add_op_(&x_cpy, &y);
+        add_op_ptr(&x_cpy, &y);
     }
 
 
@@ -123,7 +126,7 @@ uint1024_t add_op(uint1024_t x, uint1024_t y) {
  *  складывает два числа результат записвает в x
  *  требуется x.size >= y.size
  */
-void add_op_(uint1024_t *x, uint1024_t *y) {
+void add_op_ptr(uint1024_t *x, uint1024_t *y) {
     assert(x->size >= y->size);
 
     unsigned int carry = 0, i;
@@ -134,7 +137,7 @@ void add_op_(uint1024_t *x, uint1024_t *y) {
         carry = x->nums[i] < xcpy && x->nums[i] < y->nums[i]; // проверям произошло ли переполнение
     }
 
-    for (; carry && i < 16; ++i) {
+    for (; carry && i < MAX_SIZE; ++i) {
         if (i >= x->size) x->size++;
         carry = (x->nums[i] += carry) == 0;
     }
@@ -158,7 +161,7 @@ void add_op_(uint1024_t *x, uint1024_t *y) {
 
 uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
     uint1024_t x_cpy = from_uint1024(x);
-    subtr_op_(&x_cpy, &y);
+    subtr_op_ptr(&x_cpy, &y);
     return x_cpy;
 }
 
@@ -177,7 +180,7 @@ uint1024_t subtr_op(uint1024_t x, uint1024_t y) {
  * требуется x >= y
  *
  */
-void subtr_op_(uint1024_t *x, uint1024_t *y) {
+void subtr_op_ptr(uint1024_t *x, uint1024_t *y) {
     assert(x->size >= y->size);
 
     unsigned int borrow = 0, i;
@@ -191,7 +194,7 @@ void subtr_op_(uint1024_t *x, uint1024_t *y) {
     for(; borrow && i < x->size; i++) {
         uint tmp = x->nums[i] < borrow;
         x->nums[i] -= borrow;
-        // TODO перенести измение размера числа в цикл
+        // TODO перенести измение size в цикл
         borrow = tmp;
     }
 
@@ -232,6 +235,7 @@ uint1024_t div_uint1024_uint64(uint1024_t x, uint64_t y, uint64_t *mod) {
         *--pans = tmp = (uint32_t)(rem / y);
         rem -= (uint64_t)tmp * y;
     }
+
     if (mod) *mod = rem;
 
     return ans;
@@ -255,9 +259,9 @@ int uint1024_cmp(uint1024_t *x, uint1024_t *y) {
     for (int i = 0; i < x->size; ++i) {
         uint64_t x_uint = x->nums[i];
         uint64_t y_unit = y->nums[i];
-        if (x < y)
+        if (x_uint < y_unit)
             return -1;
-        else if (x > y)
+        else if (x_uint > y_unit)
             return 1;
     }
     return 0;
@@ -301,33 +305,20 @@ char *toString(uint1024_t x) {
 
     return buff;
 }
+
 /**
  * Выводит число в 10CC в stdin
  */
-
 void printf_value(uint1024_t x) {
-    const char nums_table[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
-    char buff[1024];
-    int i = 0;
-
-    // перевод двоичного числа в десятичное
-    do {
-        uint64_t mod = 0;
-        x = div_uint1024_uint64(x, 10, &mod);
-        buff[i++] = nums_table[mod];
-    }  while (!iszero(&x) && i < 1024);
-    //i--;
-
-    // разворачиваем массив
-    for (int j = 0; j < i / 2; j++) {
-        swap(buff + j, buff + (i-1) - j);
-    }
-
-    buff[i] = 0; // конец строки
-
-    puts(buff);
+    char *num_str = toString(x);
+    puts(num_str);
+    free(num_str);
 }
 
+/**
+ * Выводит hex число в stdin
+ * @param x
+ */
 void print(uint1024_t x) {
     printf("0x");
     for (int i = (int)x.size - 1; i >= 0; --i) {

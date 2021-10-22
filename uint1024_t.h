@@ -33,7 +33,7 @@ void mult_op_(uint1024_t *x, uint1024_t *y);
 uint1024_t div_uint1024_uint64(uint1024_t x, uint64_t y, uint64_t *mod);
 uint1024_t l_shift(const uint1024_t *x, unsigned int t);
 
-int uint1024_cmp(uint1024_t x, uint1024_t y);
+int uint1024_cmp(uint1024_t *x, uint1024_t *y);
 
 void printf_value(uint1024_t x);
 void scanf_value(uint1024_t* x);

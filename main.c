@@ -62,6 +62,7 @@ double test(const char *file_name, uint1024_t (*func) (uint1024_t, uint1024_t)) 
         } else {
             printf("test %d passed\n" , i);
         }
+        free(ans_str);
         //free(test.ans);
         i++;
     }

@@ -237,25 +237,35 @@ uint1024_t div_uint1024_uint64(uint1024_t x, uint64_t y, uint64_t *mod) {
     return ans;
 }
 
+
 /**
- *функция сравнивает два числа
- *
- *ВХОДНЫЕ ДАННЫЕ:
- *  uint1024_t x
- *  uint1024_t y
- *
- *ВЫХОДНЫЕ ДАННЫЕ:
- *  0 -- числа равны
- *  1 -- x > y
+ * Функция сравнивает два числа типа uint1024_t
+ * @return
+ * 0 -- числа равны\n
+ *  1 -- x > y\n
  *  -1 -- x < y
  */
-int uint1024_cmp(uint1024_t x, uint1024_t y) {
+int uint1024_cmp(uint1024_t *x, uint1024_t *y) {
+    if (x->size > y->size) {
+        return 1;
+    } else if (x->size < y->size) {
+        return -1;
+    }
+
+    for (int i = 0; i < x->size; ++i) {
+        uint64_t x_uint = x->nums[i];
+        uint64_t y_unit = y->nums[i];
+        if (x < y)
+            return -1;
+        else if (x > y)
+            return 1;
+    }
     return 0;
 }
 
-char iszero(uint1024_t x) {
-    for (int i = 0; i < 16; i++) {
-        if (x.nums[i] != 0) {
+char iszero(uint1024_t *x) {
+    for (int i = 0; i < x->size; i++) {
+        if (x->nums[i] != 0) {
             return 0;
         }
     }
@@ -279,7 +289,7 @@ char *toString(uint1024_t x) {
         uint64_t mod = 0;
         x = div_uint1024_uint64(x, 10, &mod);
         buff[i++] = nums_table[mod];
-    }  while (!iszero(x) && i < 1024);
+    }  while (!iszero(&x) && i < 1024);
     //i--;
 
     // разворачиваем массив
@@ -305,7 +315,7 @@ void printf_value(uint1024_t x) {
         uint64_t mod = 0;
         x = div_uint1024_uint64(x, 10, &mod);
         buff[i++] = nums_table[mod];
-    }  while (!iszero(x) && i < 1024);
+    }  while (!iszero(&x) && i < 1024);
     //i--;
 
     // разворачиваем массив
